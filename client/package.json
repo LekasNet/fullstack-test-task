@@ -3,9 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.4.3",
+    "@mui/material": "^6.4.3",
+    "@mui/styles": "^6.4.3",
+    "ag-grid-community": "^33.0.4",
+    "ag-grid-react": "^33.0.4",
+    "axios": "^1.7.9",
     "cra-template": "1.2.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "material-dashboard-2-react": "github:creativetimofficial/material-dashboard-react",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^7.1.5",
     "react-scripts": "5.0.1"
   },
   "scripts": {
@@ -31,5 +41,12 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-react": "^7.37.4",
+    "prettier": "^3.4.2"
   }
 }
