@@ -7,7 +7,7 @@ if (-not (Get-Command "psql" -ErrorAction SilentlyContinue)) {
 }
 
 # Prompt for database credentials
-$DB_NAME = Read-Host "Enter database name" 
+$DB_NAME = "test_task_db"
 $DB_USER = Read-Host "Enter database user" 
 $PASSWORD = Read-Host "Enter database password" -AsSecureString
 

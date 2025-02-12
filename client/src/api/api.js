@@ -2,7 +2,7 @@
 
 import axios from "axios";
 
-const API_URL = "http://192.168.1.64:5001/api";
+const API_URL = "http://localhost:5001/api";
 
 // -----------------------------------
 // --          Auth API             --
