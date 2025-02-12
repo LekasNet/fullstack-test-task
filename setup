@@ -1,0 +1,68 @@
+#!/bin/bash
+
+echo "Начинаем установку Dashboard..."
+
+# Определение ОС
+OS=$(uname -s)
+echo "Определена ОС: $OS"
+
+# Функция для проверки PostgreSQL
+check_postgres() {
+    if ! command -v psql &> /dev/null; then
+        echo "PostgreSQL не установлен! Установите его и попробуйте снова."
+        exit 1
+    fi
+}
+
+# 1. Настройка базы данных
+if [[ "$OS" == "Linux" || "$OS" == "Darwin" ]]; then
+    echo "Настройка базы данных для Mac/Linux..."
+    check_postgres
+
+    DB_NAME="dashboard_db"
+    DB_USER="postgres"
+
+    echo "Создаем базу данных и импортируем данные..."
+    psql -U $DB_USER -c "DROP DATABASE IF EXISTS $DB_NAME;"
+    psql -U $DB_USER -c "CREATE DATABASE $DB_NAME;"
+    psql -U $DB_USER -d $DB_NAME -f init-db.sql
+
+elif [[ "$OS" == "MINGW64_NT"* || "$OS" == "CYGWIN_NT"* ]]; then
+    echo "Настройка базы данных для Windows..."
+    if ! command -v psql &> /dev/null; then
+        echo "PostgreSQL не найден! Убедитесь, что он установлен и доступен в PATH."
+        exit 1
+    fi
+
+    DB_NAME="dashboard_db"
+    DB_USER="postgres"
+
+    echo "Создаем базу данных и импортируем данные..."
+    PGPASSWORD="yourpassword" psql -U $DB_USER -c "DROP DATABASE IF EXISTS $DB_NAME;"
+    PGPASSWORD="yourpassword" psql -U $DB_USER -c "CREATE DATABASE $DB_NAME;"
+    PGPASSWORD="yourpassword" psql -U $DB_USER -d $DB_NAME -f server/init-db.sql
+fi
+
+# 2. Установка зависимостей сервера
+echo "Устанавливаем зависимости сервера..."
+cd server
+npm install
+
+# 3. Запуск сервера
+echo "Запускаем сервер..."
+npm start &
+
+cd ..
+
+# 4. Установка зависимостей клиента
+echo "Устанавливаем зависимости клиента..."
+cd client
+npm install
+
+# 5. Запуск клиента
+echo "Запускаем клиент..."
+npm start &
+
+cd ..
+
+echo "Установка завершена! Сервер и клиент запущены."

@@ -27,7 +27,7 @@ function UsersList() {
         try {
             await createUser(newUser);
             setUsers((prevUsers) => [...prevUsers, newUser]);
-            setNewUser({ name: "", email: "", role: "user", birth_date: "" });  // reset form
+            setNewUser({ name: "", email: "", role: "user", birth_date: "" });
         } catch (error) {
             console.error("Error adding user:", error);
         }
@@ -39,7 +39,7 @@ function UsersList() {
             setUsers((prevUsers) =>
                 prevUsers.map((user) => (user.id === id ? editingUser : user))
             );
-            setEditingUser(null);  // reset editing form
+            setEditingUser(null);
         } catch (error) {
             console.error("Error updating user:", error);
         }

@@ -114,11 +114,15 @@ exports.getOrdersWithPagination = async (req, res) => {
         const [countResult] = await sequelize.query(countQuery);
         const total = countResult[0].total;
 
+        // Проверяем, есть ли ещё данные
+        const lastRow = offset + orders.length >= total ? total : -1;
+
         res.json({
             total,
             page,
             limit,
             totalPages: Math.ceil(total / limit),
+            lastRow, // ✅ Передаём в ответ
             data: orders,
         });
     } catch (error) {
@@ -126,4 +130,5 @@ exports.getOrdersWithPagination = async (req, res) => {
         res.status(500).json({ error: "Ошибка при получении заказов" });
     }
 };
+
 

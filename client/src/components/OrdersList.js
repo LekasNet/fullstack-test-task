@@ -1,132 +1,117 @@
-import React, { useState, useEffect } from "react";
-import { getOrders, createOrder, updateOrder, deleteOrder } from "../api/api";
-import { Button, TextField } from "@mui/material";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { AgGridReact } from "ag-grid-react";
+import { InfiniteRowModelModule } from "ag-grid-community";
+import { Box, Paper, Typography, IconButton, Menu, MenuItem } from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
+import { getOrders } from "../api/api";
+import { provideGlobalGridOptions } from "ag-grid-community";
+
+provideGlobalGridOptions({ theme: "legacy" });
 
 function OrdersList() {
-    const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [newOrder, setNewOrder] = useState({ amount: "", status: "pending", delivery_date: "" });
-    const [editingOrder, setEditingOrder] = useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [menuOrderId, setMenuOrderId] = useState(null);
+    const gridRef = useRef(null);
+    const PAGE_SIZE = 20;
 
-    useEffect(() => {
-        const fetchOrders = async () => {
-            try {
-                const data = await getOrders();
-                setOrders(data.data);
-            } catch (error) {
-                console.error("Error fetching orders:", error);
-            } finally {
-                setLoading(false);
+    const handleMenuOpen = (event, orderId) => {
+        setAnchorEl(event.currentTarget);
+        setMenuOrderId(orderId);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+        setMenuOrderId(null);
+    };
+
+    const onGridReady = useCallback((params) => {
+        gridRef.current = params.api;
+
+        const dataSource = {
+            rowCount: null,
+            getRows: async (params) => {
+                const { startRow, endRow } = params;
+                const page = Math.floor(startRow / PAGE_SIZE) + 1;
+
+                try {
+                    const response = await getOrders(page, PAGE_SIZE);
+                    const { data, total } = response;
+
+                    console.log("startRow:", startRow, "endRow:", endRow, "data.length:", data.length, "total:", total);
+
+                    // Определяем `lastRow`
+                    let lastRow = null;
+                    if (startRow + data.length >= total) {
+                        lastRow = total;
+                    }
+
+                    params.successCallback(data, lastRow);
+                } catch (error) {
+                    console.error("Ошибка при загрузке заказов:", error);
+                    params.failCallback();
+                }
             }
         };
 
-        fetchOrders();
+        params.api.setGridOption("datasource", dataSource);
+        params.api.sizeColumnsToFit();
     }, []);
 
-    const handleAddOrder = async () => {
-        try {
-            await createOrder(newOrder);
-            setOrders((prevOrders) => [...prevOrders, newOrder]);
-            setNewOrder({ amount: "", status: "pending", delivery_date: "" });  // reset form
-        } catch (error) {
-            console.error("Error adding order:", error);
-        }
-    };
-
-    const handleEditOrder = async (id) => {
-        try {
-            await updateOrder(id, editingOrder);
-            setOrders((prevOrders) =>
-                prevOrders.map((order) => (order.id === id ? editingOrder : order))
-            );
-            setEditingOrder(null);  // reset editing form
-        } catch (error) {
-            console.error("Error updating order:", error);
-        }
-    };
-
-    const handleDeleteOrder = async (id) => {
-        try {
-            await deleteOrder(id);
-            setOrders((prevOrders) => prevOrders.filter((order) => order.id !== id));
-        } catch (error) {
-            console.error("Error deleting order:", error);
-        }
-    };
-
     return (
-        <div>
-            <h2>Orders</h2>
-            <div>
-                <TextField
-                    label="Amount"
-                    value={newOrder.amount}
-                    onChange={(e) => setNewOrder({ ...newOrder, amount: e.target.value })}
-                />
-                <TextField
-                    label="Status"
-                    value={newOrder.status}
-                    onChange={(e) => setNewOrder({ ...newOrder, status: e.target.value })}
-                />
-                <TextField
-                    label="Delivery Date"
-                    type="date"
-                    value={newOrder.delivery_date}
-                    onChange={(e) => setNewOrder({ ...newOrder, delivery_date: e.target.value })}
-                />
-                <Button onClick={handleAddOrder}>Add Order</Button>
-            </div>
+        <Paper elevation={3} sx={{ borderRadius: 3, padding: 2, boxShadow: 3, height: 500 }}>
+            {/* Заголовок таблицы */}
+            <Box sx={{ paddingBottom: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1.1rem" }}>Orders List</Typography>
+                    <Typography variant="body2" color="textSecondary">
+                        Manage and track customer orders.
+                    </Typography>
+                </Box>
+                <IconButton onClick={(event) => handleMenuOpen(event, "table")}>
+                    <MoreVertIcon />
+                </IconButton>
+                <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl) && menuOrderId === "table"}
+                    onClose={handleMenuClose}
+                >
+                    <MenuItem onClick={handleMenuClose}>Action</MenuItem>
+                    <MenuItem onClick={handleMenuClose}>Another Action</MenuItem>
+                    <MenuItem onClick={handleMenuClose}>Something Else</MenuItem>
+                </Menu>
+            </Box>
 
-            {loading ? (
-                <div>Loading...</div>
-            ) : (
-                <ul>
-                    {orders.map((order) => (
-                        <li key={order.id}>
-                            Amount: {order.amount} - Status: {order.status} - Delivery Date: {order.delivery_date}
-                            <Button onClick={() => setEditingOrder(order)}>Edit</Button>
-                            <Button onClick={() => handleDeleteOrder(order.id)}>Delete</Button>
-                            {editingOrder && editingOrder.id === order.id && (
-                                <div>
-                                    <TextField
-                                        label="Edit Amount"
-                                        value={editingOrder.amount}
-                                        onChange={(e) =>
-                                            setEditingOrder({
-                                                ...editingOrder,
-                                                amount: e.target.value,
-                                            })
-                                        }
-                                    />
-                                    <TextField
-                                        label="Edit Status"
-                                        value={editingOrder.status}
-                                        onChange={(e) =>
-                                            setEditingOrder({
-                                                ...editingOrder,
-                                                status: e.target.value,
-                                            })
-                                        }
-                                    />
-                                    <TextField
-                                        label="Edit Delivery Date"
-                                        type="date"
-                                        value={editingOrder.delivery_date}
-                                        onChange={(e) =>
-                                            setEditingOrder({
-                                                ...editingOrder,
-                                                delivery_date: e.target.value,
-                                            })
-                                        }
-                                    />
-                                    <Button onClick={() => handleEditOrder(order.id)}>Save</Button>
-                                </div>
-                            )}
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
+            {/* Таблица заказов */}
+            <Box sx={{ height: "100%", width: "100%" }} className="ag-theme-alpine">
+                <AgGridReact
+                    ref={gridRef}
+                    columnDefs={[
+                        { headerName: "ID", field: "id", sortable: true, filter: true, width: 80 },
+                        { headerName: "Amount", field: "amount", sortable: true, filter: true, width: 100 },
+                        { headerName: "Created At", field: "created_at", sortable: true, filter: true, width: 150 },
+                        { headerName: "Delivery Date", field: "delivery_date", sortable: true, filter: true, width: 150 },
+                        { headerName: "Status", field: "status", sortable: true, filter: true, width: 100 },
+                        { headerName: "User", field: "user_name", sortable: true, filter: true, width: 120 },
+                        { headerName: "User Email", field: "user_email", sortable: true, filter: true, width: 200 },
+                        { headerName: "Delivery Company", field: "delivery_company_name", sortable: true, filter: true, width: 200 },
+                    ]}
+                    defaultColDef={{
+                        flex: 1,
+                        minWidth: 100,
+                        resizable: true,
+                        sortable: true,
+                    }}
+                    rowModelType="infinite"
+                    cacheBlockSize={PAGE_SIZE}
+                    paginationPageSize={PAGE_SIZE}
+                    pagination={true}
+                    modules={[InfiniteRowModelModule]}
+                    onGridReady={onGridReady}
+                />
+            </Box>
+        </Paper>
     );
 }
 

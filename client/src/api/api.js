@@ -1,13 +1,53 @@
+// /src/api/api.js
+
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "http://192.168.1.64:5001/api";
 
+// -----------------------------------
+// --          Auth API             --
+// -----------------------------------
+
+export const loginUser = async (email, password) => {
+    try {
+        const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+        const { token } = response.data;
+
+        localStorage.setItem("token", token);
+
+        setupAxiosInterceptors();
+
+        return response.data;
+    } catch (error) {
+        console.error("Login error:", error);
+        throw error;
+    }
+};
+
+export const logoutUser = () => {
+    localStorage.removeItem("token");
+    delete axios.defaults.headers.common["Authorization"];
+};
+
+export const getToken = () => {
+    return localStorage.getItem("token");
+};
+
+export const setupAxiosInterceptors = () => {
+    const token = getToken();
+    if (token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    } else {
+        delete axios.defaults.headers.common["Authorization"];
+    }
+};
+
+setupAxiosInterceptors();
 
 // -----------------------------------
 // --           Users API           --
 // -----------------------------------
 
-// Получение всех пользователей
 export const getUsers = async () => {
     try {
         const response = await axios.get(`${API_URL}/users`);
@@ -18,7 +58,6 @@ export const getUsers = async () => {
     }
 };
 
-// Добавление нового пользователя
 export const createUser = async (userData) => {
     try {
         const response = await axios.post(`${API_URL}/users`, userData);
@@ -29,7 +68,6 @@ export const createUser = async (userData) => {
     }
 };
 
-// Обновление пользователя
 export const updateUser = async (id, userData) => {
     try {
         const response = await axios.put(`${API_URL}/users/${id}`, userData);
@@ -40,7 +78,6 @@ export const updateUser = async (id, userData) => {
     }
 };
 
-// Удаление пользователя
 export const deleteUser = async (id) => {
     try {
         const response = await axios.delete(`${API_URL}/users/${id}`);
@@ -55,7 +92,6 @@ export const deleteUser = async (id) => {
 // --           Orders API           --
 // ------------------------------------
 
-// Получение всех заказов с пагинацией
 export const getOrders = async (page = 1, limit = 5) => {
     try {
         const response = await axios.get(`${API_URL}/orders/paginated?page=${page}&limit=${limit}`);
@@ -66,7 +102,6 @@ export const getOrders = async (page = 1, limit = 5) => {
     }
 };
 
-// Добавление нового заказа
 export const createOrder = async (orderData) => {
     try {
         const response = await axios.post(`${API_URL}/orders`, orderData);
@@ -77,7 +112,6 @@ export const createOrder = async (orderData) => {
     }
 };
 
-// Обновление заказа
 export const updateOrder = async (id, orderData) => {
     try {
         const response = await axios.put(`${API_URL}/orders/${id}`, orderData);
@@ -88,7 +122,6 @@ export const updateOrder = async (id, orderData) => {
     }
 };
 
-// Удаление заказа
 export const deleteOrder = async (id) => {
     try {
         const response = await axios.delete(`${API_URL}/orders/${id}`);
