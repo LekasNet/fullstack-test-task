@@ -1,39 +1,44 @@
-Write-Host "Начинаем установку Dashboard..."
+Write-Host "Starting Dashboard setup..."
 
-# Проверка наличия PostgreSQL
+# Check if PostgreSQL is installed
 if (-not (Get-Command "psql" -ErrorAction SilentlyContinue)) {
-    Write-Host "PostgreSQL не установлен! Установите его и попробуйте снова."
+    Write-Host "PostgreSQL is not installed! Please install it and try again."
     exit
 }
 
-# Настройка базы данных
-$DB_NAME = "dashboard_db"
-$DB_USER = "postgres"
-$PASSWORD = "yourpassword"
+# Prompt for database credentials
+$DB_NAME = Read-Host "Enter database name" 
+$DB_USER = Read-Host "Enter database user" 
+$PASSWORD = Read-Host "Enter database password" -AsSecureString
 
-Write-Host "Создаем базу данных и импортируем данные..."
-cmd.exe /c "SET PGPASSWORD=$PASSWORD && psql -U $DB_USER -c 'DROP DATABASE IF EXISTS $DB_NAME;'"
-cmd.exe /c "SET PGPASSWORD=$PASSWORD && psql -U $DB_USER -c 'CREATE DATABASE $DB_NAME;'"
-cmd.exe /c "SET PGPASSWORD=$PASSWORD && psql -U $DB_USER -d $DB_NAME -f init-db.sql"
+# Convert secure password to plain text
+$PASSWORD_PLAIN = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
+    [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($PASSWORD)
+)
 
-# Установка зависимостей сервера
-Write-Host "Устанавливаем зависимости сервера..."
+Write-Host "Creating database and importing data..."
+cmd.exe /c "SET PGPASSWORD=$PASSWORD_PLAIN && psql -U $DB_USER -c 'DROP DATABASE IF EXISTS $DB_NAME;'"
+cmd.exe /c "SET PGPASSWORD=$PASSWORD_PLAIN && psql -U $DB_USER -c 'CREATE DATABASE $DB_NAME;'"
+cmd.exe /c "SET PGPASSWORD=$PASSWORD_PLAIN && psql -U $DB_USER -d $DB_NAME -f init-db.sql"
+
+# Install server dependencies
+Write-Host "Installing server dependencies..."
 cd server
 npm install
 cd ..
 
-# Запуск сервера
-Write-Host "Запускаем сервер..."
-Start-Process -NoNewWindow -FilePath "node" -ArgumentList "server/app.js"
+# Start the server
+Write-Host "Starting the server..."
+Start-Process -NoNewWindow -FilePath "node" -ArgumentList "server/index.js"
 
-# Установка зависимостей клиента
-Write-Host "Устанавливаем зависимости клиента..."
+# Install client dependencies
+Write-Host "Installing client dependencies..."
 cd client
 npm install
 cd ..
 
-# Запуск клиента
-Write-Host "Запускаем клиент..."
+# Start the client
+Write-Host "Starting the client..."
 Start-Process -NoNewWindow -FilePath "npm" -ArgumentList "start" -WorkingDirectory "client"
 
-Write-Host "Установка завершена! Сервер и клиент запущены."
+Write-Host "Setup complete! Server and client are running."
