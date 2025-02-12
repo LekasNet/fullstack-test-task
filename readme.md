@@ -103,6 +103,12 @@ cd server
 psql -U postgres -f init-db.sql
 ```
 
+### **НЕОБХОДИМО поместить .env в папку server, предварительно заменив данные о подключении к бд**
+```sh
+DB_USER=
+DB_PASSWORD=
+```
+
 #### **Запуск серверной части**
 ```sh
 cd server
