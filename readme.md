@@ -113,7 +113,7 @@ DB_PASSWORD=
 #### **Запуск серверной части**
 ```sh
 cd server
-npm start
+node ./index.js
 ```
 
 #### **Запуск клиентской части**
