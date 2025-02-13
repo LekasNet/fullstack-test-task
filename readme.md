@@ -103,6 +103,7 @@ npm install
 ```sh
 cd server
 psql -U postgres -f init-db.sql
+node ./hash-passwords.js
 ```
 
 #### **НЕОБХОДИМО поместить .env в папку server, предварительно заменив данные о подключении к бд**
