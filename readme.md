@@ -16,14 +16,16 @@
 │   ├── 📂 models                 # Модели Sequelize
 │   ├── 📂 routes                 # Роуты API
 │   ├── 📜 database.js            # Подключение к PostgreSQL
-│   ├── 📜 app.js                 # Главный файл сервера
+│   ├── 📜 index.js               # Главный файл сервера
+│   ├── 📜 hash-passwords.js      # Скрипт для перегенерации хэшей в бд
 │   ├── 📜 .env                   # Переменные окружения
 │   ├── 📜 package.json           # Зависимости сервера
 │
 ├── 📂 client                     # Клиентская часть (React)
 │   ├── 📂 src
 │   │   ├── 📂 components         # Компоненты React
-│   │   ├── 📂 pages              # Основные страницы
+│   │   ├── 📂 hooks              # Необходимые хуки
+│   │   ├── 📂 styles             # автоматически созданная папка, все рукописные стили прописаны непосредственно в файлах компонентов
 │   │   ├── 📂 api                # Файл API для работы с сервером
 │   │   ├── 📜 App.js             # Главный компонент
 │   │   ├── 📜 index.js           # Точка входа
@@ -72,15 +74,15 @@
 
 ## 🚀 Запуск проекта
 
-### **1. Автоматический запуск (универсальный скрипт)**
+### ~~**1. Автоматический запуск (универсальный скрипт)**~~ В данный момент не работает ввиду ошибки с обработкой psql запросов в PowerShell. Bash скрипт не протестирован.
 
-#### **Linux / MacOS**
+#### ~~**Linux / MacOS**~~
 ```sh
 chmod +x setup
 ./setup
 ```
 
-#### **Windows (PowerShell)**
+#### ~~**Windows (PowerShell)**~~
 ```powershell
 Set-ExecutionPolicy Unrestricted -Scope Process
 ./setup.ps1
@@ -103,10 +105,16 @@ cd server
 psql -U postgres -f init-db.sql
 ```
 
+#### **НЕОБХОДИМО поместить .env в папку server, предварительно заменив данные о подключении к бд**
+```sh
+DB_USER=
+DB_PASSWORD=
+```
+
 #### **Запуск серверной части**
 ```sh
 cd server
-npm start
+node ./index.js
 ```
 
 #### **Запуск клиентской части**
@@ -114,6 +122,30 @@ npm start
 cd client
 npm start
 ```
+## Данные для входа
+```
+login -    admin@example.com
+password - defaultPassword123
+```
+#### Если воникли проблемы со входом:
+```sh
+cd ./server/
+node ./hash-passwords.js
+```
+---
+## Страницы клиентской части
+
+### **Главные страницы**
+- **Главная (Dashboard):**  `http://localhost:3000/`
+- **Заказы:**  `http://localhost:3000/orders`
+- **Пользователи:**  `http://localhost:3000/users`
+
+### **Аутентификация**
+- **Вход:** `http://localhost:3000/login`
+- **Регистрация:** `http://localhost:3000/register`
+
+### **Документация API (Swagger)**
+- `http://localhost:3000/api/docs`
 
 ---
 
